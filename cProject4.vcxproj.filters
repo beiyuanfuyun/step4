@@ -1,22 +1,138 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
-    <Filter Include="源文件">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="头文件">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="资源文件">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="源.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-</Project>
+//#define _CRT_SECURE_NO_WARNINGS
+//#include<stdio.h>
+////取反功能
+//void fun2(int* x)
+//{
+//	*x = 0 - *x;
+//}
+////打印功能
+//void print(int* b)
+//{
+//	printf("%d\n", *b);
+//}
+//
+////中转功能
+//void fun(int x, int(*p)(int x))
+//{
+//	p(&x);
+//}
+//
+////主函数
+//int main()
+//{
+//	int arr[] = { 1, 2, 3, 4, 5 };
+//	int a = 0;
+//	scanf("%d", &a);
+//	fun(arr[a], fun2);
+//	fun(arr[a], print);
+//	return 0;
+//}
+
+
+//#include<stdio.h>
+//int main()
+//{
+//	int a = 0;
+//	int b= scanf_s("%d", &a);
+//	printf("%d\n", b);
+//	return 0;//scanf的返回值为一
+//
+//}
+
+
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<math.h>
+
+//功能区块
+double Add(double x,double y)
+{
+	return x + y;
+}
+double Sub(double x,double y)
+{
+	return x - y;
+}
+double Mul(double x, double y)
+{
+	return x * y;
+}
+double Div(double x, double y)
+{
+	return x / y;
+}
+double Mod(double x, double y)
+{
+	return fmod(x,y);//%只能适用于整数的求余
+	//fmod函数用于浮点数的取余，数学函数需要头文件math.h
+}
+//计算区块
+typedef double(*P)(double, double);
+double Cal(double x, double y, P p)
+{
+	return p(x, y);
+}
+
+// 输入函数
+void fun06()
+{
+	char str[20];
+	char* S = str;
+	P p = NULL;
+	double x, y, temp1 = 0, temp2 = 0;
+	int point = 0;
+	gets(S);
+	while (*S)
+	{
+		if (*S >='0' && *S <= '9')
+		{
+			if (!point)
+			{
+				temp1 = (temp1 * 10) + (*S - '0');
+			}
+			
+			else
+			{
+				temp2 = temp2 + ((*S - '0') / pow(10.0, point));
+				//pow求次方函数，基本格式 pow(doule x,int y);求x的y次方
+				point++;
+			}
+		    
+		}
+		else if (*S == '.')
+	        {
+			    point = 1;
+	        } 
+		else
+		{
+			x = temp1 + temp2;
+			temp1 = 0;
+			temp2 = 0;
+			point = 0;
+			switch (*S)
+			{
+			case'+':p=Add; break;
+			case'-':p=Sub; break;
+			case'*':p=Mul; break;
+			case'/':p=Div; break;
+			case'%':p=Mod; break;
+			default:printf("输入错误！\n");
+				return;
+			}
+		}
+		S++;
+	}
+	y = temp1 + temp2;
+	printf("%lf",Cal(x, y, p));
+}
+
+
+//主函数区块
+int main()
+{
+	while (1)
+		fun06();
+	getchar();
+	getchar();
+	return 0;
+}
