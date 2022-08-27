@@ -1,0 +1,262 @@
+//推箱子项目
+
+#include<easyx.h>
+#include<stdio.h>
+#include<conio.h>
+#define WIDBG 10//表示宽的图片的数量
+#define HEIBG 10//表示高的图片数量
+#define SIZE 50//表示图片的边长
+//0.打开窗口
+//1.建立三张三维地图
+int arr[3][HEIBG][WIDBG]=//拿0代表空地，拿1表示墙壁，拿2表示人，拿3表示箱子，拿4表示目的地，6表示人在目的地上，7表示箱子在目的地上
+{
+	{
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 4, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 3, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 2, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	}
+	,
+	{
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+		1, 0, 0, 3, 0, 0, 2, 0, 1, 1,
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 4, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 0, 4, 0, 3, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 3, 0, 4, 0, 1, 0, 0, 1,
+		1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	}
+		,
+		{
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+			1, 0, 0, 3, 0, 2, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 4, 0, 3, 4, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		}
+};
+int tempMap[HEIBG][WIDBG];
+int leve = 0;//创立关卡
+
+
+
+//2初始化地图
+void initMap()
+{
+	for (int i = 0; i <HEIBG; i++)//二维数组的行下表
+	{
+		for (int j = 0; j < WIDBG; j++)
+		{
+			tempMap[i][j] = arr[leve][i][j];
+		}
+	}
+}
+	//2.5存图
+	IMAGE image[5];//创立图片数组存放空间
+	//2.7加载图片
+	void picload()
+	{
+		loadimage(&image[0], "1.jpg", SIZE, SIZE);//墙
+		loadimage(&image[1], "2.jpg", SIZE, SIZE);//人
+		loadimage(&image[2], "3.jpg", SIZE, SIZE);//箱子
+		loadimage(&image[3], "4.jpg", SIZE, SIZE);//目的地
+		loadimage(&image[4], "7.jpg", SIZE, SIZE);//箱子在目的地上
+	}
+
+//3.贴图
+	void drawMap()
+	{
+		//putimage(50, 50, &image[0]);
+		BeginBatchDraw();//批量加载
+		int i, j;
+		for (i = 0; i < HEIBG; i++)
+		{
+			for (j = 0; j < WIDBG; j++)
+			{
+				switch (tempMap[i][j])
+				{
+				case 1:
+					putimage(j*SIZE, i*SIZE, &image[0]);
+					break;
+				case 6:
+				case 2:
+					putimage(j*SIZE, i*SIZE, &image[1]);
+					break;
+				case 3:
+					putimage(j*SIZE, i*SIZE, &image[2]);
+					break;
+				case 4:
+					putimage(j*SIZE, i*SIZE, &image[3]);
+					break;
+				case 7:
+					putimage(j*SIZE, i*SIZE, &image[4]);
+					break;
+				}
+
+			}
+		}
+		EndBatchDraw();//结束批量加载
+	}
+
+//3.5.确定是那张地图，辅助地图，转化为当前地图
+//4.人物的移动
+	void personMove()
+	{
+		//1.先找到人物，保存人物坐标（数组元素坐标）
+		int row = 0, col = 0;//row行下表，col列下标
+		int i = 0, j = 0;
+		for (i = 0; i < HEIBG; i++)
+		{
+			for (j = 0; j < WIDBG; j++)
+			{
+				if (tempMap[i][j] == 2 || tempMap[i][j] == 6)
+				{
+					row = i;
+					col = j;
+					goto L;
+				}
+			}
+		}
+	L://注意一下：这里为：符号,且只能在一个函数里使用
+		//2.人物的移动
+		//_getch();//需要一个函数库conio.h
+		switch (_getch())
+		{
+		case 'w':
+			if (tempMap[row - 1][col] == 0 || tempMap[row - 1][col] == 4)
+			{
+				tempMap[row - 1][col] += 2;
+				tempMap[row][col] -= 2;
+
+			}
+			if (tempMap[row - 1][col] == 3 || tempMap[row - 1][col] == 7)
+			{
+				if (tempMap[row - 2][col] != 1)
+				{
+					tempMap[row][col] -= 2;
+					tempMap[row - 1][col] -= 1;
+					tempMap[row - 2][col] += 3;
+				}
+			}
+			break;
+		case 's':
+			if (tempMap[row + 1][col] == 0 || tempMap[row + 1][col] == 4)
+			{
+				tempMap[row + 1][col] += 2;
+				tempMap[row][col] -= 2;
+
+			}
+			if (tempMap[row + 1][col] == 3 || tempMap[row + 1][col] == 7)
+			{
+				if (tempMap[row + 2][col] != 1)
+				{
+					tempMap[row][col] -= 2;
+					tempMap[row + 1][col] -= 1;
+					tempMap[row + 2][col] += 3;
+				}
+			}
+			break;
+
+		case 'a':
+			if (tempMap[row][col - 1] == 0 || tempMap[row][col - 1] == 4)
+			{
+				tempMap[row][col - 1] += 2;
+				tempMap[row][col] -= 2;
+
+			}
+			if (tempMap[row][col - 1] == 3 || tempMap[row][col - 1] == 7)
+			{
+				if (tempMap[row][col - 2] != 1)
+				{
+					tempMap[row][col] -= 2;
+					tempMap[row][col - 1] -= 1;
+					tempMap[row][col - 2] += 3;
+				}
+			}
+			break;
+		case'd':
+			if (tempMap[row][col + 1] == 0 || tempMap[row][col + 1] == 4)
+			{
+				tempMap[row][col + 1] += 2;
+				tempMap[row][col] -= 2;
+
+			}
+			if (tempMap[row][col + 1] == 3 || tempMap[row][col + 1] == 7)
+			{
+				if (tempMap[row][col + 2] != 1)
+				{
+					tempMap[row][col] -= 2;
+					tempMap[row][col + 1] -= 1;
+					tempMap[row][col + 2] += 3;
+				}
+			}
+			break;
+
+		}
+
+	}
+
+//5.成功的判断条件
+	void iswin()
+	{
+		//找不到箱子
+		int i = 0, j = 0;
+		for (i = 0; i < HEIBG; i++)
+		{
+			for (j = 0; j < WIDBG; j++)
+			{
+				if (tempMap[i][j] == 3)
+					return;//还有箱子游戏继续
+			}
+		}
+		if (leve>2)//所有关卡结束
+		{
+			int temp = MessageBox(GetHWnd(), "是否开启第一关", "提示", MB_YESNO);//提示窗口的两个选择
+			if (temp == IDYES)
+			{
+				leve = 0;
+				initMap();
+			}
+			else
+				exit(0);//退出程序
+		}
+		else
+		{
+			leve++;
+			initMap();
+		}
+	}
+//6.是否选择重启
+//主函数
+int main()
+{
+	initgraph(WIDBG*SIZE, HEIBG*SIZE);
+	initMap();
+	picload();
+	drawMap();
+	while (1)
+	{
+		personMove();
+		cleardevice();
+		drawMap();
+		iswin();
+		
+	}
+	closegraph();
+	return 0;
+	
+}
